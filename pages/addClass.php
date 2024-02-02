@@ -2,40 +2,22 @@
 include("../pages/db_connect.php");
 $sql = "SELECT * FROM product_info ";
 $result = $conn->query($sql);
-// 设置每页显示的记录数
 $perPage = 8;
-// 获取总记录数
 $sqlTotal = "SELECT COUNT(*) AS total FROM product_info";
 $resultTotal = $conn->query($sqlTotal);
 $rowTotal = $resultTotal->fetch_assoc();
-// var_dump($rowTotal);
-// total是別名
 $totalRecords = $rowTotal['total'];
-// 计算总页数
 $totalPages = ceil($totalRecords / $perPage);
-// 确定当前页码
-// var_dump($totalPages);
 if (!isset($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
   $currentPage = 1;
 } elseif ($_GET['page'] > $totalPages) {
   $currentPage = $totalPages;
-  // 当前页码设置为最大可用页数。这样可以避免用户看到不存在的页面，提高系统的可用性。
 } else {
   $currentPage = $_GET['page'];
 }
-// 计算查询偏移量
-// 这意味着在数据库查询中要跳过第一页的数据，从第二页的数据开始获取。
 $offset = ($currentPage - 1) * $perPage;
-// var_dump($offset);
-
-// 执行数据库查询
-// 例如，如果 $offset 的值是 10，$perPage 的值是 5，那么这个 LIMIT 子句就表示从第 11 行开始（跳过前面 10 行），返回后续的 5 行数据，即第 11 到第 15 行数据。
 $sqlData = "SELECT * FROM product_info LIMIT $offset, $perPage";
 $resultData = $conn->query($sqlData);
-// 在页面上显示查询结果
-// 显示分页链接
-// var_dump($resultData);
-
 ?>
 <!DOCTYPE html>
 <html lang="en">

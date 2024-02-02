@@ -45,7 +45,7 @@
         resize: none;
     } */
 
-    /* addOther的頁面 */
+    /* addOther新增子類別的頁面 */
     .page4_PJ-btn {
         display: flex;
         justify-content: space-evenly;

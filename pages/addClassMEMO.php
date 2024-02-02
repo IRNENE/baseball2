@@ -1,8 +1,41 @@
 <?php
 include("../pages/db_connect.php");
-$sql = "SELECT * FROM product_info";
+$sql = "SELECT * FROM product_info ";
 $result = $conn->query($sql);
-$rows = $result->fetch_all(MYSQLI_ASSOC)
+// 设置每页显示的记录数
+$perPage = 8;
+// 获取总记录数
+$sqlTotal = "SELECT COUNT(*) AS total FROM product_info";
+$resultTotal = $conn->query($sqlTotal);
+$rowTotal = $resultTotal->fetch_assoc();
+// var_dump($rowTotal);
+// total是別名
+$totalRecords = $rowTotal['total'];
+// 计算总页数
+$totalPages = ceil($totalRecords / $perPage);
+// 确定当前页码
+// var_dump($totalPages);
+if (!isset($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
+  $currentPage = 1;
+} elseif ($_GET['page'] > $totalPages) {
+  $currentPage = $totalPages;
+  // 当前页码设置为最大可用页数。这样可以避免用户看到不存在的页面，提高系统的可用性。
+} else {
+  $currentPage = $_GET['page'];
+}
+// 计算查询偏移量
+// 这意味着在数据库查询中要跳过第一页的数据，从第二页的数据开始获取。
+$offset = ($currentPage - 1) * $perPage;
+// var_dump($offset);
+
+// 执行数据库查询
+// 例如，如果 $offset 的值是 10，$perPage 的值是 5，那么这个 LIMIT 子句就表示从第 11 行开始（跳过前面 10 行），返回后续的 5 行数据，即第 11 到第 15 行数据。
+$sqlData = "SELECT * FROM product_info LIMIT $offset, $perPage";
+$resultData = $conn->query($sqlData);
+// 在页面上显示查询结果
+// 显示分页链接
+// var_dump($resultData);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,7 +47,7 @@ $rows = $result->fetch_all(MYSQLI_ASSOC)
   <!-- 網頁favcon -->
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>
-    新增子類別
+    新增主類別
   </title>
   <!-- title記得要修改 -->
 
@@ -145,110 +178,73 @@ $rows = $result->fetch_all(MYSQLI_ASSOC)
     </nav>
     <div class="container">
       <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-
-      <h2 class="mt-3 mb-2">新增子類別</h2>
-
-      <div class="mb-2"><a href="category_all.php">
-          <i class="fa-solid fa-house fa-fw"></i>
-        </a></div>
-
-
-      <form action="add_other.php" method="post">
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped">
-            <tr>
-              <th><label for="classValue">主類別</label></th>
-              <td><select id="" name="classValue" required>
-                  <option>請選擇主類別</option>
-                  <?php foreach ($rows as $row) : ?>
-                    <option value="<?php echo $row["class"]; ?>"><?php echo $row["class"]; ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </td>
-            </tr>
-
-            <tr>
-              <th><label for="otherValue">規格</label></th>
-              <td>
-                <input type="text" id="otherValue" name="otherValue" placeholder="使用,號區分不同規格" required>
-              </td>
-            </tr>
-            <tr>
-              <th><label for="sizeValue">尺寸</label></th>
-              <td><input type="text" id="sizeValue" name="sizeValue" placeholder="使用,號區分不同尺寸" required></td>
-            </tr>
-            <tr>
-              <th><label for="brandValue">品牌</label></th>
-              <td>
-                <div class="d-flex flex-row gap-3">
-                  <div> <input type="checkbox" id="brandValue" name="brandValue[]" value="MIZUNO"> MIZUNO<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="久保田Slugger"> 久保田Slugger<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="ZETT"> ZETT<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="SSK"> SSK<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="LouisvilleSlugger"> LouisvilleSlugger<br>
-                  </div>
-                  <div><input type="checkbox" id="brandValue" name="brandValue[]" value="EASTON"> EASTON<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="BRETT"> BRETT<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="Wilson"> Wilson<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="UNDERARMOUR"> UNDERARMOUR<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="NIKE"> NIKE<br>
-                  </div>
-                  <div><input type="checkbox" id="brandValue" name="brandValue[]" value="adidas"> adidas<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="創信"> 創信<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="MLB"> MLB<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="統一獅"> 統一獅<br>
-                    <input type="checkbox" id="brandValue" name="brandValue[]" value="asics"> asics<br>
-                  </div>
-
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th><label for="colorValue">顏色</label></th>
-              <td>
-                <div class="d-flex flex-row gap-3">
-                  <div>
-                    <input type="checkbox" id="colorValue" name="colorValue[]" value="黑"> 黑<br>
-                    <input type="checkbox" id="colorValue" name="colorValue[]" value="白"> 白<br>
-                    <input type="checkbox" id="colorValue" name="colorValue[]" value="紅"> 紅<br>
-                  </div>
-                  <div>
-                    <input type="checkbox" id="colorValue" name="colorValue[]" value="黃"> 黃<br>
-                    <input type="checkbox" id="colorValue" name="colorValue[]" value="藍"> 藍<br>
-                    <input type="checkbox" id="colorValue" name="colorValue[]" value="綠"> 綠<br>
-                  </div>
-                  <div>
-                    <input type="checkbox" id="colorValue" name="colorValue[]" value="橘"> 橘<br>
-
-                  </div>
-                </div>
-              </td>
-            </tr>
-          </table>
-          <div class="page4_PJ-btn">
-            <div></div>
-            <div></div>
-            <button type="submit" class="btn btn-primary  ">
-              新增
-            </button>
-
-            <button type="reset" class="btn btn-reset btn-danger">清空</button>
-            <div></div>
-            <div></div>
-            <div></div>
-
-
-          </div>
-
-
+      <form action="add_class.php" method="post">
+        <div class="my-3 page2_PJ-title">
+          <h2>新增主類別</h2>
         </div>
 
+        <div class="location page2_PJ-inputbox">
+          <input type="text" name="name" class="page2_PJ-input" placeholder="請輸入主類別名稱">
+          <button type="submit" class="btn  page2_PJ-btn btn-primary">
+            新增
+          </button>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
       </form>
 
+      <div class="m-2"><a href="category_all.php">
+          <i class="fa-solid fa-house fa-fw"></i>
+        </a></div>
+      <table class="table table-bordered  table-striped page2_PJ_table">
+        <thead class=>
+          <tr>
+            <th>ID</th>
+            <th>主類別</th>
+            <th>上架狀態</th>
+            <th>管理功能</th>
+          </tr>
+        </thead>
 
-      <!-- CODE貼完 -->
-    </div>
-    <!-- End Navbar -->
+        <tbody>
+          <?php
+          $rows = $resultData->fetch_all(MYSQLI_ASSOC);
+          foreach ($rows as $row) : ?>
+            <tr>
+              <td><?= $row["ID"] ?></td>
+              <td class=" data-column"><?= $row["class"] ?></td>
+              <td class=" data-column">
+                <?php if ($row["valid"] == 1) {
+                  echo "上架";
+                } else {
+                  echo "下架";
+                } ?>
+              </td>
+              <td class="col data-column">
+                <a href="detail.php?id=<?= $row["ID"] ?>">
+                  <i class="fa-solid fa-fw fa-pen-to-square test-warning"></i>
+                </a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+      <nav aria-label="Page navigation example">
+        <ul class="pagination">
+          <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
+            <li class="page-item <?php if ($i == $currentPage) echo "active"; ?>">
+              <a class="page-link" href="addClass.php?page=<?= $i ?>"><?= $i ?></a>
+            </li>
+          <?php endfor; ?>
+        </ul>
+      </nav>
+
+
+
+      <!-- End Navbar -->
   </main>
   <!-- 右下設定 -->
   <div class="fixed-plugin">
