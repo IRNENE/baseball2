@@ -4,9 +4,18 @@
 
 <style>
     /* 为category_all 的頁面 */
-    /* body.page1_PJ table {
+    .page1_PJ {
         text-align: center;
-    } */
+    }
+
+    .page1_PJ-icon {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+        align-items: center;
+    }
+
+
 
     /* addclass頁面新增主類別 */
     .page2_PJ_table {
