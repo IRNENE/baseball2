@@ -2,9 +2,41 @@
 include("../pages/db_connect.php");
 $sql = "SELECT * FROM product_info ";
 $result = $conn->query($sql);
+// 设置每页显示的记录数
+$perPage = 8;
+// 获取总记录数
+$sqlTotal = "SELECT COUNT(*) AS total FROM product_info";
+$resultTotal = $conn->query($sqlTotal);
+$rowTotal = $resultTotal->fetch_assoc();
+// var_dump($rowTotal);
+// total是別名
+$totalRecords = $rowTotal['total'];
+// 计算总页数
+$totalPages = ceil($totalRecords / $perPage);
+// 确定当前页码
+// var_dump($totalPages);
+if (!isset($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
+  $currentPage = 1;
+} elseif ($_GET['page'] > $totalPages) {
+  $currentPage = $totalPages;
+  // 当前页码设置为最大可用页数。这样可以避免用户看到不存在的页面，提高系统的可用性。
+} else {
+  $currentPage = $_GET['page'];
+}
+// 计算查询偏移量
+// 这意味着在数据库查询中要跳过第一页的数据，从第二页的数据开始获取。
+$offset = ($currentPage - 1) * $perPage;
+// var_dump($offset);
+
+// 执行数据库查询
+// 例如，如果 $offset 的值是 10，$perPage 的值是 5，那么这个 LIMIT 子句就表示从第 11 行开始（跳过前面 10 行），返回后续的 5 行数据，即第 11 到第 15 行数据。
+$sqlData = "SELECT * FROM product_info LIMIT $offset, $perPage";
+$resultData = $conn->query($sqlData);
+// 在页面上显示查询结果
+// 显示分页链接
+// var_dump($resultData);
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -13,35 +45,32 @@ $result = $conn->query($sql);
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="./assets/img/apple-icon.png">
   <!-- 網頁favcon -->
-  <<<<<<< HEAD:pages/addclass.php <link rel="icon" type="image/png" href="../assets/img/favicon.png">
-    =======
-    <link rel="icon" type="image/png" href="../assets/img/694606.png">
-    >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-    <title>
-      新增class
-    </title>
-    <!-- !    title要改名 -->
-    <!--     Fonts and icons     -->
-    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
-    <!-- Nucleo Icons -->
-    <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
-    <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
-    <!-- Font Awesome Icons -->
-    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <!-- CSS Files -->
-    <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.0.0" rel="stylesheet" />
-    <!-- font awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="../assets/css/ader.css" rel="stylesheet" />
-    <<<<<<< HEAD:pages/addclass.php <link href="../assets/css/PJ.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="../assets/img/favicon.png">
+  <title>
+    新增主類別
+  </title>
+  <!-- title記得要修改 -->
 
-    <?php
-    include("../assets/css/PJ.php");
-    ?>
-    =======
-    >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
+
+  <!--     Fonts and icons     -->
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
+  <!-- Nucleo Icons -->
+  <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <!-- CSS Files -->
+  <link id="pagestyle" href="../assets/css/material-dashboard.css?v=3.0.0" rel="stylesheet" />
+  <!-- font awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="../assets/css/ader.css" rel="stylesheet" />
+
+  <!-- 新增自己的css檔案 -->
+  <?php
+  include("../assets/css/PJ.php");
+  ?>
 </head>
 
 <body class="g-sidenav-show  bg-gray-200">
@@ -49,7 +78,7 @@ $result = $conn->query($sql);
     <div class="sidenav-header">
       <i class="fas fa-times p-3 cursor-pointer text-white opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
       <!-- 回首頁連結 -->
-      <a class="navbar-brand m-0" href="#">
+      <a class="navbar-brand m-0" href="">
         <!-- LOGO -->
         <img src=" ../assets/img/logo-ct.png" class="navbar-brand-img h-100" alt="main_logo">
         <span class="ms-1 font-weight-bold text-white">棒球好玩家</span>
@@ -60,19 +89,16 @@ $result = $conn->query($sql);
       <ul class="navbar-nav">
         <li class="nav-item">
           <!-- 超連結 -->
-          <<<<<<< HEAD:pages/addclass.php <a class="nav-link text-white" href="#">
-            =======
-            <a class="nav-link text-white" href="./test.php">
-              >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-              <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="material-icons opacity-10">dashboard</i>
-              </div>
-              <span class="nav-link-text ms-1">會員管理</span>
-            </a>
+          <a class="nav-link text-white" href="#">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">dashboard</i>
+            </div>
+            <span class="nav-link-text ms-1">會員管理</span>
+          </a>
         </li>
         <li class="nav-item">
           <!-- 超連結 -->
-          <a class="nav-link text-white " href="./test.php">
+          <a class="nav-link text-white " href="#">
             <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="material-icons opacity-10">table_view</i>
             </div>
@@ -81,75 +107,57 @@ $result = $conn->query($sql);
         </li>
         <li class="nav-item">
           <!-- 超連結 -->
-          <<<<<<< HEAD:pages/addclass.php <a class="nav-link text-white active" href="#">
-            =======
-            <a class="nav-link text-white active" href="./test.php">
-              >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-              <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="material-icons opacity-10">dashboard</i>
-              </div>
-              <span class="nav-link-text ms-1">商品管理</span>
-            </a>
+          <a class="nav-link text-white active" href="#">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">dashboard</i>
+            </div>
+            <span class="nav-link-text ms-1">商品管理</span>
+          </a>
         </li>
         <li class="nav-item">
           <!-- 超連結 -->
-          <<<<<<< HEAD:pages/addclass.php <a class="nav-link text-white" href="#">
-            =======
-            <a class="nav-link text-white" href="./test.php">
-              >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-              <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="material-icons opacity-10">dashboard</i>
-              </div>
-              <span class="nav-link-text ms-1">租借管理</span>
-            </a>
+          <a class="nav-link text-white" href="#">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">dashboard</i>
+            </div>
+            <span class="nav-link-text ms-1">租借管理</span>
+          </a>
         </li>
         <li class="nav-item">
           <!-- 超連結 -->
-          <<<<<<< HEAD:pages/addclass.php <a class="nav-link text-white" href="#">
-            =======
-            <a class="nav-link text-white" href="./test.php">
-              >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-              <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="material-icons opacity-10">dashboard</i>
-              </div>
-              <span class="nav-link-text ms-1">類別管理</span>
-            </a>
+          <a class="nav-link text-white" href="#">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">dashboard</i>
+            </div>
+            <span class="nav-link-text ms-1">類別管理</span>
+          </a>
         </li>
         <li class="nav-item">
           <!-- 超連結 -->
-          <<<<<<< HEAD:pages/addclass.php <a class="nav-link text-white" href="#">
-            =======
-            <a class="nav-link text-white" href="./coupon.php?status=1&p=1">
-              >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-              <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="material-icons opacity-10">dashboard</i>
-              </div>
-              <span class="nav-link-text ms-1">優惠券管理</span>
-            </a>
+          <a class="nav-link text-white" href="#">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">dashboard</i>
+            </div>
+            <span class="nav-link-text ms-1">優惠券管理</span>
+          </a>
         </li>
         <li class="nav-item">
           <!-- 超連結 -->
-          <<<<<<< HEAD:pages/addclass.php <a class="nav-link text-white" href="#">
-            =======
-            <a class="nav-link text-white" href="./test.php">
-              >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-              <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="material-icons opacity-10">dashboard</i>
-              </div>
-              <span class="nav-link-text ms-1">課程管理</span>
-            </a>
+          <a class="nav-link text-white" href="#">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">dashboard</i>
+            </div>
+            <span class="nav-link-text ms-1">課程管理</span>
+          </a>
         </li>
         <li class="nav-item">
           <!-- 超連結 -->
-          <<<<<<< HEAD:pages/addclass.php <a class="nav-link text-white" href="#">
-            =======
-            <a class="nav-link text-white" href="./test.php">
-              >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-              <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                <i class="material-icons opacity-10">dashboard</i>
-              </div>
-              <span class="nav-link-text ms-1">文章管理</span>
-            </a>
+          <a class="nav-link text-white" href="#">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">dashboard</i>
+            </div>
+            <span class="nav-link-text ms-1">文章管理</span>
+          </a>
         </li>
       </ul>
     </div>
@@ -169,68 +177,74 @@ $result = $conn->query($sql);
       </div>
     </nav>
     <div class="container">
-      <<<<<<< HEAD:pages/addclass.php <div>
-        <form action="add_class.php" method="post">
-          <div class="my-3 page2_PJ-title">
-            <h2>新增class列表</h2>
-          </div>
+      <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <form action="add_class.php" method="post">
+        <div class="my-3 page2_PJ-title">
+          <h2>新增主類別</h2>
+        </div>
 
-          <div class="location page2_PJ-inputbox">
-            <input type="text" name="name" class="page2_PJ-input" placeholder="請輸入class 名稱">
-            <button type="submit" class="btn  page2_PJ-btn btn-primary">
-              新增
-            </button>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>
-        </form>
-    </div>
-    <div class="m-2"><a href="category_all.php">
-        <i class="fa-solid fa-house fa-fw"></i>
-      </a></div>
-    <table class="table table-bordered  table-striped page2_PJ_table">
-      <thead class=>
-        <tr>
-          <th>ID</th>
-          <th>class</th>
-          <th>狀態</th>
-          <th>編輯</th>
-        </tr>
-      </thead>
+        <div class="location page2_PJ-inputbox">
+          <input type="text" name="name" class="page2_PJ-input" placeholder="請輸入主類別名稱">
+          <button type="submit" class="btn  page2_PJ-btn btn-primary">
+            新增
+          </button>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </form>
 
-      <tbody>
-        <?php
-        $rows = $result->fetch_all(MYSQLI_ASSOC);
-        foreach ($rows as $row) : ?>
+      <div class="m-2"><a href="category_all.php">
+          <i class="fa-solid fa-house fa-fw"></i>
+        </a></div>
+      <table class="table table-bordered  table-striped page2_PJ_table">
+        <thead class=>
           <tr>
-            <td><?= $row["ID"] ?></td>
-            <td class=" data-column"><?= $row["class"] ?></td>
-            <td class=" data-column">
-              <?php if ($row["valid"] == 1) {
-                echo "上架";
-              } else {
-                echo "下架";
-              } ?>
-            </td>
-            <td class="col data-column">
-              <a href="detail.php?id=<?= $row["ID"] ?>">
-                <i class="fa-solid fa-fw fa-pen-to-square test-warning"></i>
-              </a>
-            </td>
+            <th>ID</th>
+            <th>主類別</th>
+            <th>上架狀態</th>
+            <th>管理功能</th>
           </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          <?php
+          $rows = $resultData->fetch_all(MYSQLI_ASSOC);
+          foreach ($rows as $row) : ?>
+            <tr>
+              <td><?= $row["ID"] ?></td>
+              <td class=" data-column"><?= $row["class"] ?></td>
+              <td class=" data-column">
+                <?php if ($row["valid"] == 1) {
+                  echo "上架";
+                } else {
+                  echo "下架";
+                } ?>
+              </td>
+              <td class="col data-column">
+                <a href="detail.php?id=<?= $row["ID"] ?>">
+                  <i class="fa-solid fa-fw fa-pen-to-square test-warning"></i>
+                </a>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+      <nav aria-label="Page navigation example">
+        <ul class="pagination">
+          <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
+            <li class="page-item <?php if ($i == $currentPage) echo "active"; ?>">
+              <a class="page-link" href="addClass.php?page=<?= $i ?>"><?= $i ?></a>
+            </li>
+          <?php endfor; ?>
+        </ul>
+      </nav>
 
 
-    =======
-    <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-    >>>>>>> 5821f34bf81338ce6f31c3b8e3a20f1ba93c4963:template.php
-    </div>
-    <!-- End Navbar -->
+
+      <!-- End Navbar -->
   </main>
   <!-- 右下設定 -->
   <div class="fixed-plugin">
@@ -314,6 +328,9 @@ $result = $conn->query($sql);
   <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="../assets/js/material-dashboard.min.js?v=3.0.0"></script>
   <?php include("./js.php") ?>
+  <!-- 如果要放自己的js檔案放在asset裡 -->
+
+
 </body>
 
 </html>

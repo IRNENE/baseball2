@@ -8,7 +8,7 @@
         text-align: center;
     } */
 
-    /* addclass頁面 */
+    /* addclass頁面新增主類別 */
     .page2_PJ_table {
         text-align: center;
 
