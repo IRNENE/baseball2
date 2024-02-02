@@ -23,16 +23,17 @@
         align-items: center;
     }
 
-
-
     body.page2_PJ .form-control {
         width: 600px;
         height: 60px;
     }
 
-
     /*  为alterCategory 的頁面*/
-    body.page3_PJ textarea {
+    .page3_PJ-text {
         resize: none;
+    }
+
+    .page3_PJ-table {
+        text-align: center;
     }
 </style>

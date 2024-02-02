@@ -31,13 +31,10 @@ $rowCount = $result->num_rows;
             類別不存在
         <?php else :
             $row = $result->fetch_assoc();
-            // print_r($row);
         ?>
             <h2 class="mt-4">類別 編輯頁面</h2>
             <div class="py-2">
-
                 <a href="detail.php?id=<?= $row["ID"] ?>"><i class="fa-solid fa-left-long fa-fw"></i></a>
-                <!-- <a class="btn btn-primary" href="category_all.php" role="button"><i class="fa-solid fa-house fa-fw custom-icon"></i></a> -->
             </div>
             <form action="alter_other.php" method="post">
                 <input type="hidden" name="id" value="<?= $row["ID"] ?>">
