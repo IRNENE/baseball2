@@ -156,7 +156,7 @@ if (isset($_GET["id"])) {
     <div class="container">
       <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <h2><?= $rows["class"] ?>詳細資訊</h2>
-      <div> <a href="category_all.php">
+      <div class="mb-2"> <a href="category_all.php">
           <i class="fa-solid fa-house fa-fw"></i>
         </a></div>
       <table class="table table-bordered page5_PJ table-striped">

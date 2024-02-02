@@ -208,10 +208,10 @@ if (isset($_GET["search"])) {
         <div class="py-2 justify-content-between d-flex align-items-center">
           <div>
 
-            <a href="addClass.php"> <i class="fas fa-plus-square"></i>&nbsp;class</a>
+            <a href="addClass.php" class="page1-link"> <i class="fas fa-plus-square"></i>&nbsp;主類別</a>
             &nbsp;&nbsp;
-            <a href="addOther.php"> <i class="fas fa-tag"></i>
-              other</a>
+            <a href="addOther.php" class="page1-link"> <i class="fas fa-tag"></i>
+              子類別</a>
 
           </div>
 
