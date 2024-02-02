@@ -15,14 +15,11 @@
         align-items: center;
     }
 
-
-
     /* addclass頁面新增主類別 */
     .page2_PJ_table {
         text-align: center;
 
     }
-
 
     .page2_PJ-inputbox {
         display: flex;
@@ -30,7 +27,6 @@
         justify-content: space-between;
         align-items: center;
     }
-
 
     .page2_PJ-title {
         margin-left: 1%;
@@ -41,20 +37,16 @@
         height: 60px;
         margin-left: 1%;
         margin-bottom: 1%;
-
     }
 
     .page2_PJ-btn {
         margin-bottom: 1%;
     }
 
-
-
     /*  为alterCategory 的頁面*/
     .page3_PJ-text {
         resize: none;
     }
-
 
     .page3_PJ-th {
         text-align: center;
@@ -88,5 +80,17 @@
         justify-content: space-evenly;
         align-items: center;
         margin-bottom: 2%;
+    }
+
+    /* detail頁面 */
+
+    .page5_PJ th {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .page5_PJ td {
+        padding-left: 2%;
+        vertical-align: middle;
     }
 </style>
