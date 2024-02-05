@@ -1,5 +1,5 @@
 <?php
-include 'C:\xampp\htdocs\baseball-P\db_connect.php';
+include("../pages/db_connect.php");
 if (!isset($_GET["id"])) {
   $id = 0;
 } else {

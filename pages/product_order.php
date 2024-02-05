@@ -1,42 +1,41 @@
 <?php
 include("../pages/db_connect.php");
-$sql = "SELECT * FROM product_info ";
-$result = $conn->query($sql);
-// 设置每页显示的记录数
+
 $perPage = 8;
-// 获取总记录数
-$sqlTotal = "SELECT COUNT(*) AS total FROM product_info";
-$resultTotal = $conn->query($sqlTotal);
-$rowTotal = $resultTotal->fetch_assoc();
-// var_dump($rowTotal);
-// total是別名
-$totalRecords = $rowTotal['total'];
-// 计算总页数
-$totalPages = ceil($totalRecords / $perPage);
-// 确定当前页码
-// var_dump($totalPages);
-if (!isset($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
-  $currentPage = 1;
-} elseif ($_GET['page'] > $totalPages) {
-  $currentPage = $totalPages;
-  // 当前页码设置为最大可用页数。这样可以避免用户看到不存在的页面，提高系统的可用性。
-} else {
-  $currentPage = $_GET['page'];
+$sql_Search = "SELECT * FROM product_order";
+$result_Search = $conn->query($sql_Search);
+$totalCount = $result_Search->num_rows;
+$pageCount = ceil($totalCount / $perPage);
+
+if (isset($_GET["order"])) {
+  $order = $_GET["order"];
+  if ($order == 1) {
+    $orderString = "ORDER BY ID ASC";
+  } elseif ($order == 2) {
+    $orderString = "ORDER BY ID DESC";
+  }
 }
-// 计算查询偏移量
-// 这意味着在数据库查询中要跳过第一页的数据，从第二页的数据开始获取。
-$offset = ($currentPage - 1) * $perPage;
-// var_dump($offset);
-
-// 执行数据库查询
-// 例如，如果 $offset 的值是 10，$perPage 的值是 5，那么这个 LIMIT 子句就表示从第 11 行开始（跳过前面 10 行），返回后续的 5 行数据，即第 11 到第 15 行数据。
-$sqlData = "SELECT * FROM product_info LIMIT $offset, $perPage";
-$resultData = $conn->query($sqlData);
-// 在页面上显示查询结果
-// 显示分页链接
-// var_dump($resultData);
-
+if (isset($_GET["search"])) {
+  $search = $_GET["search"];
+  $sql = "SELECT * FROM product_order WHERE customer LIKE '%$search%'AND  OR payment_method LIKE '%$search%'";
+} elseif (isset($_GET["p"])) {
+  $p = $_GET["p"];
+  $startIndex = ($p - 1) * $perPage;
+  $sql = "SELECT * FROM product_order  $orderString LIMIT $startIndex, $perPage";
+} else {
+  $p = 1;
+  $order = 1;
+  $orderString = "ORDER BY ID ASC";
+  $sql = "SELECT * FROM product_order  LIMIT  $perPage";
+}
+$result = $conn->query($sql);
+if (isset($_GET["search"])) {
+  $Count = $result->num_rows;
+} else {
+  $Count = $totalCount;
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -47,7 +46,7 @@ $resultData = $conn->query($sqlData);
   <!-- 網頁favcon -->
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>
-    新增主類別
+    訂單管理主頁
   </title>
   <!-- title記得要修改 -->
 
@@ -177,74 +176,152 @@ $resultData = $conn->query($sqlData);
       </div>
     </nav>
     <div class="container">
-      <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <form action="add_class.php" method="post">
-        <div class="my-3 page2_PJ-title">
-          <h2>新增主類別</h2>
+      <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+      <h2>訂單列表</h2>
+      <div class="py-2">
+        <div class="row g-3">
+          <?php if (isset($_GET["search"])) : ?>
+            <div class="col-auto">
+              <a href="product_order.php" class="btn btn-primary" role="button"><i class="fa-solid fa-arrow-left fa-fw"></i></a>
+            </div>
+          <?php endif; ?>
+
+          <form action="" method="get">
+            <div class="input-group mb-3">
+              <input type="search" class="form-control" placeholder="搜尋關鍵字" name="search" <?php if (isset($_GET["search"])) :
+                                                                                            $searchValue = $_GET["search"]; ?> value="<?= $searchValue ?>" <?php endif; ?>>
+
+              <button class="btn btn-outline-secondary" type="submit">
+                <i class="fa-solid fa-magnifying-glass"> </i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between pb-2 align-items-center">
+        <div>
+          共<?= $Count ?>筆
         </div>
 
-        <div class="location page2_PJ-inputbox">
-          <input type="text" name="name" class="page2_PJ-input" placeholder="請輸入主類別名稱">
-          <button type="submit" class="btn  page2_PJ-btn btn-primary">
-            新增
-          </button>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
+      </div>
+      <?php if (!isset($_GET["search"])) : ?>
+        <div class="py-2 justify-content-between d-flex align-items-center">
+          <div>
+
+            <!-- <a href="addClass.php" class="page1-link"> <i class="fas fa-plus-square"></i>&nbsp;主類別</a>
+            &nbsp;&nbsp;
+            <a href="addOther.php" class="page1-link"> <i class="fas fa-tag"></i>
+              子類別</a> -->
+
+          </div>
+
+          <div class="btn-group d-flex align-items-center">
+            <div class="me-2">排序</div>
+            <a class="btn btn-primary
+                        <?php if ($order == 1) echo "active" ?>
+                        " href="product_order.php"><i class="fa-solid fa-arrow-down-1-9 fa-fw"></i></a>
+            <a class="btn btn-primary
+                        <?php if ($order == 2) echo "active" ?>
+                        " href="product_order.php?order=2&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-9-1 fa-fw"></i></a>
+
+          </div>
         </div>
-      </form>
+      <?php endif; ?>
 
-      <div class="m-2"><a href="category_all.php">
-          <i class="fa-solid fa-house fa-fw"></i>
-        </a></div>
-      <table class="table table-bordered  table-striped page2_PJ_table">
-        <thead class=>
-          <tr>
-            <th>ID</th>
-            <th>主類別</th>
-            <th>上架狀態</th>
-            <th>管理功能</th>
-          </tr>
-        </thead>
 
-        <tbody>
-          <?php
-          $rows = $resultData->fetch_all(MYSQLI_ASSOC);
-          foreach ($rows as $row) : ?>
+
+      <?php if ($totalCount > 0) : ?>
+        <table class="table table-bordered  table-striped">
+          <thead>
             <tr>
-              <td><?= $row["ID"] ?></td>
-              <td class=" data-column"><?= $row["class"] ?></td>
-              <td class=" data-column">
-                <?php if ($row["valid"] == 1) {
-                  echo "上架";
-                } else {
-                  echo "下架";
-                } ?>
-              </td>
-              <td class="col data-column">
-                <a href="detail.php?id=<?= $row["ID"] ?>">
-                  <i class="fa-solid fa-fw fa-pen-to-square test-warning"></i>
-                </a>
-              </td>
+              <th >id</th>
+                    <th>訂購者</th>
+                    <th >購買金額</th>
+                    <th >購買日期</th>
+                    <th>訂單狀態</th>
+                    <th>訂單更新</th>
+                    <th>付款方式</th>
+                    <th>更新日期</th>
+                    <th>詳細信息</th>
             </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-      <nav aria-label="Page navigation example">
-        <ul class="pagination">
-          <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
-            <li class="page-item <?php if ($i == $currentPage) echo "active"; ?>">
-              <a class="page-link" href="addClass.php?page=<?= $i ?>"><?= $i ?></a>
-            </li>
-          <?php endfor; ?>
-        </ul>
-      </nav>
+          </thead>
+
+          <tbody>
+            <?php
+            $rows = $result->fetch_all(MYSQLI_ASSOC);
+            foreach ($rows as $row) : ?>
+            <tr>
+                <td ><?= $row["id"] ?></td>
+                <td><?= $row["customer"] ?></td>
+                <td ><?= $row["total_amount"] ?></td>
+                <td ><?= $row["date"] ?></td>
+                <td>
+                    <?php if ($row["valid"] == 1) {
+                                echo "待出貨";
+                            } else {
+                                echo "處理中";
+                            } ?>
+                  
+                </td>
+                <td>
+                  <button><a href="update_product.php?id=<?= $row["id"] ?>">
+                    更新訂單
+                  </a></button>
+                  </td>
+
+
+<!-- 
+                  /* 將超連結設置為按鈕樣式 */
+a.button {
+  display: inline-block;
+  padding: 8px 16px;
+  text-decoration: none;
+  background-color: #007bff; /* 按鈕背景顏色 */
+  color: #fff; /* 按鈕文字顏色 */
+  border: 1px solid #007bff; /* 邊框顏色 */
+  border-radius: 4px; /* 圓角 */
+  transition: background-color 0.3s ease; /* 過渡效果 */
+}
+
+/* 滑鼠懸停時的樣式 */
+a.button:hover {
+  background-color: #0056b3; /* 滑鼠懸停時的背景顏色 */
+  border-color: #0056b3; /* 滑鼠懸停時的邊框顏色 */
+} -->
+
+                <td><?= $row["payment_method"] ?></td>
+                <td><?= $row["updated_at"] ?></td>
+                <td class="col data-column">
+                  <a href="product_order.php">
+                    <i class="fas fa-info-circle fa-fw"></i>
+                  </a>
+                </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <?php if (!isset($_GET["search"])) : ?>
+          <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              <?php for ($i = 1; $i <= $pageCount; $i++) : ?>
+                <li class="page-item
+                            <?php if ($i == $p) echo "active";
+                            ?>"><a class="page-link" href="product_order.php?order=<?= $order ?>&p=<?= $i ?>"><?= $i ?></a></li>
+              <?php endfor; ?>
+
+            </ul>
+          </nav>
+        <?php endif; ?>
+      <?php else : ?>
+        沒有訂單資料
+      <?php endif; ?>
 
 
 
-      <!-- End Navbar -->
+
+
+      <!-- code結束 -->
+    </div>
+    <!-- End Navbar -->
   </main>
   <!-- 右下設定 -->
   <div class="fixed-plugin">

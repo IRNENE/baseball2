@@ -1,5 +1,5 @@
 <?php
-include 'C:\xampp\htdocs\baseball-P\db_connect.php';
+include("../pages/db_connect.php");
 
 // 检查是否存在 "id" 参数
 if (isset($_GET["id"])) {

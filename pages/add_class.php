@@ -1,5 +1,5 @@
 <?php
-include 'C:\xampp\htdocs\baseball-P\db_connect.php';
+include("../pages/db_connect.php");
 
 $alter_ID_sql_PRODUCT = "ALTER TABLE `product_info` AUTO_INCREMENT = 1";
 

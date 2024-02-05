@@ -1,5 +1,5 @@
 <?php
-include 'C:\xampp\htdocs\baseball-P\db_connect.php';
+include("../pages/db_connect.php");
 
 $perPage = 8;
 $sql_Search = "SELECT * FROM product_info WHERE valid=1";

@@ -1,17 +1,112 @@
 <?php
 include("../pages/db_connect.php");
-if (isset($_GET["id"])) {
-  $id = $_GET["id"];
-  $sql = "SELECT * FROM product_info WHERE ID=$id";
-  $result = $conn->query($sql);
-  if ($result->num_rows > 0) {
-    $rows = $result->fetch_assoc();
-  } else {
-    echo "獲取失敗";
-  }
+
+$sql_Search = "SELECT * FROM product_order";// 原始 SQL 查詢
+$result_Search = $conn->query($sql_Search);
+$rows = $result_Search->fetch_all(MYSQLI_ASSOC);
+$sql="SELECT * FROM product_order";
+
+$perPage = 8;
+$sqlTotal = "SELECT COUNT(*) AS total FROM product_order";
+$resultTotal = $conn->query($sqlTotal);
+$rowTotal = $resultTotal->fetch_assoc();
+$totalRecords = $rowTotal['total'];
+$totalPages = ceil($totalRecords / $perPage);
+$totalCount = $resultTotal->num_rows;
+if (!isset($_GET['page']) || !is_numeric($_GET['page']) || $_GET['page'] < 1) {
+  $currentPage = 1;
+} elseif ($_GET['page'] > $totalPages) {
+  $currentPage = $totalPages;
 } else {
-  echo "ID parameter is missing";
+  $currentPage = $_GET['page'];
 }
+$offset = ($currentPage - 1) * $perPage;
+$sqlData = "SELECT * FROM product_order LIMIT $offset, $perPage";
+$resultData = $conn->query($sqlData);
+
+
+
+// $sql 變數重新賦值，導致之前的 SQL 查詢條件被覆蓋。這會導致在載入分頁數據時，您的 LIMIT 條件被刪除了。
+// 確定是否有篩選條件
+if (isset($_GET["search"])) {
+    $search = $_GET["search"];
+    $sql_Search .= " WHERE customer LIKE '%$search%' OR payment_method LIKE '%$search%'";
+}
+
+// 確定是否有排序條件
+if (isset($_GET["order"])) {
+    $order = $_GET["order"];
+    if ($order == 1) {
+        $sql_Search .= " ORDER BY ID ASC";
+    } elseif ($order == 2) {
+        $sql_Search .= " ORDER BY ID DESC";
+    }
+}
+
+// // 處理分頁
+// if (isset($_GET["p"])) {
+//     $p = $_GET["p"];
+//     $startIndex = ($p - 1) * $perPage;
+//     $sql_Search .= " LIMIT $startIndex, $perPage";
+// } else {
+//     $p = 1;
+// }
+
+// 執行 SQL 查詢
+$result = $conn->query($sql_Search);
+if (isset($_GET["search"])) {
+     $Count = $result->num_rows;
+   } else {
+     $Count = $totalCount;
+  }
+
+
+  // if (isset($_GET["search"])) {
+  //   $search = $_GET["search"];
+  //   $sql = "SELECT * FROM product_order WHERE customer LIKE '%$search%' OR payment_method LIKE '%$search%' ";
+  // } elseif (isset($_GET["p"])) {
+  //   $p = $_GET["p"];
+  //   $startIndex = ($p - 1) * $perPage;
+  //   $sql = "SELECT * FROM product_order  $orderString LIMIT $startIndex, $perPage";
+  // } else {
+  //   $p = 1;
+  //   $order = 1;
+  //   $orderString = "ORDER BY ID ASC";
+  //   $sql = "SELECT * FROM product_order  LIMIT  $perPage";
+  // }
+  // $result = $conn->query($sql);
+  // if (isset($_GET["search"])) {
+  //   $Count = $result->num_rows;
+  // } else {
+  //   $Count = $totalCount;
+  // }
+
+//   if (isset($_GET["min"]) && isset($_GET["max"])) {
+//     $min = $_GET["min"];
+//     $max = $_GET["max"];
+//     if ($max == 0) {
+//         $max = 9999;
+//     } else if ($max <= $min) {
+//         $max = $min;
+//     }
+//     $sql = "SELECT product_orders.product_id,product.name AS product_name FROM product_orders
+//     JOIN product ON  product_orders.product_id=product.id WHERE product_orders.total_amount >= $min AND  product_orders.total_amount <= $max ORDER BY  product_orders.id";
+
+//     $whereClause = "WHERE product_orders.total_amount>=$min AND product_orders.total_amount<=$max";
+// } else {
+//   $sql = "SELECT product_orders.product_id,product.name AS product_name FROM product_orders
+//   JOIN product ON  product_orders.product_id=product.id ORDER BY  product_orders.id";
+//   $whereClause = "";
+// }
+
+
+// $sql = "SELECT product.*,category.name AS category_name FROM product 
+// JOIN category ON product.category_id=category.id
+// $whereClause ORDER BY product.id";
+// $result = $conn->query($sql);
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -24,7 +119,7 @@ if (isset($_GET["id"])) {
   <!-- 網頁favcon -->
   <link rel="icon" type="image/png" href="../assets/img/favicon.png">
   <title>
-    類別詳細資訊
+    訂單管理列表
   </title>
   <!-- title記得要修改 -->
 
@@ -154,66 +249,153 @@ if (isset($_GET["id"])) {
       </div>
     </nav>
     <div class="container">
-      <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      <h2><?= $rows["class"] ?>詳細資訊</h2>
-      <div class="mb-2"> <a href="category_all.php">
-          <i class="fa-solid fa-house fa-fw"></i>
-        </a></div>
-      <table class="table table-bordered page5_PJ table-striped">
-        <tr>
-          <th>ID</th>
-          <td><?= $rows["ID"] ?></td>
-        </tr>
-        <tr>
-          <th>主類別
-          </th>
-          <td><?= $rows["class"] ?></td>
-        </tr>
-        <tr>
-          <th>子類別</th>
-          <td><?= $rows["other"] ?></td>
-        </tr>
-        <tr>
-          <th>尺寸</th>
-          <td><?= $rows["size"] ?></td>
-        </tr>
-        <tr>
-          <th>品牌</th>
-          <td>
-            <?php
-            $brand = $rows["brand"];
-            $brand_array = explode(',', $brand);
-            $brands_per_line = 6;
-            $chunked_brands = array_chunk($brand_array, $brands_per_line);
-            foreach ($chunked_brands as $brands) {
-              echo implode(', ', $brands) . "<br>";
-            }
-            ?>
-          </td>
-        </tr>
-        <tr>
-          <th>顏色</th>
-          <td><?= $rows["color"] ?></td>
-        </tr>
-        <tr>
-          <th>上架狀態</th>
-          <td><?php if ($rows["valid"] == 1) {
-                echo "上架";
-              } else {
-                echo "下架";
-              } ?></td>
-        </tr>
+      <!-- CODE貼這裡~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+      <h2>訂單列表</h2>
 
-      </table>
-      <div class="d-flex justify-content-between">
-        <a name="" id="" class="btn btn-primary" href="alterCategory.php?id=<?= $rows["ID"] ?>" role="button"><i class="fa-solid fa-pen-to-square fa-fw"></i>
-        </a>
-        <a class="btn btn-danger" href="delate.php?id=<?= $rows["ID"] ?>" role="button"> <i class="fa-solid fa-trash fa-fw"></i>
-        </a>
+
+
+      <div class="py-2">
+        <div class="row g-3">
+          <?php if (isset($_GET["search"])) : ?>
+            <div class="col-auto">
+              <a href="product_order.php" class="btn btn-primary" role="button"><i class="fa-solid fa-arrow-left fa-fw"></i></a>
+            </div>
+          <?php endif; ?>
+
+          <form action="" method="get">
+            <div class="input-group mb-3">
+              <input type="search" class="form-control" placeholder="搜尋關鍵字" name="search" <?php if (isset($_GET["search"])) :
+                                                                                            $searchValue = $_GET["search"]; ?> value="<?= $searchValue ?>" <?php endif; ?>>
+
+              <button class="btn btn-outline-secondary" type="submit">
+                <i class="fa-solid fa-magnifying-glass"> </i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between pb-2 align-items-center">
+        <div>
+          共<?= $Count ?>筆
+        </div>
 
       </div>
+      <?php if (!isset($_GET["search"])) : ?>
+        <div class="py-2 justify-content-between d-flex align-items-center">
+          
+          <div class="btn-group d-flex align-items-center">
+            <div class="me-2">排序</div>
+            <a class="btn btn-primary
+                        <?php if ($order == 1) echo "active" ?>
+                        " href="product_order.php"><i class="fa-solid fa-arrow-down-1-9 fa-fw"></i></a>
+            <a class="btn btn-primary
+                        <?php if ($order == 2) echo "active" ?>
+                        " href="product_order.php?order=2&p=<?= $p ?>"><i class="fa-solid fa-arrow-down-9-1 fa-fw"></i></a>
+
+          </div>
+        </div>
+      <?php endif; ?>
+      <form action="">
+    <div class="row g-3 align-items-center">
+        <?php if (isset($_GET["min"]) && isset($_GET["max"])) : ?>
+            <div class="col-auto">
+                <a href="product_order.php" name="" id="" class="btn btn-primary" role="button"><i class="fa-solid fa-arrow-left fa-fw"></i></a>
+            </div>
+        <?php endif; ?>
+
+        <div class="col-auto">
+            <?php
+            $minValue = 0;
+            if (isset($_GET["min"])) {
+                $minValue = $min;
+            }
+            ?>
+            <input type="number" class="form-control" name="min" value="<?php echo $minValue; ?>" min="0">
+        </div>
+        <div class="col-auto">
+            ~
+        </div>
+        <div class="col-auto">
+            <?php
+            $maxValue = 99999;
+            if (isset($_GET["max"])) {
+                $maxValue = $max;
+            }
+            ?>
+            <input type="number" class="form-control" name="max" value="<?php echo $maxValue; ?>" min="0">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">
+                GO
+            </button>
+        </div>
+    </div>
+</form>      
+<?php if ($totalCount > 0) : ?>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th >id</th>
+                    <th>customer</th>
+                    <th >total_amount</th>
+                    <th >date</th>
+                    <th>訂單狀態</th>
+                    <th>payment_method</th>
+                    <th>updated_at</th>
+                    <th>詳細信息</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <?php foreach ($rows as $row) : ?>
+                  <tr>
+                    <td ><?= $row["id"] ?></td>
+                    <td><?= $row["customer"] ?></td>
+                    <td ><?= $row["total_amount"] ?></td>
+                    <td ><?= $row["date"] ?></td>
+                    <td>
+                    <?php if ($row["valid"] == 1) {
+                                echo "待出貨";
+                            } else {
+                                echo "處理中";
+                            } ?>
+                  
+                  </td>
+                   
+                    <td><?= $row["payment_method"] ?></td>
+                   
+                    <td><?= $row["updated_at"] ?></td>
+                    <td class="col data-column">
+                  <a href="product_order.php">
+                    <i class="fas fa-info-circle fa-fw"></i>
+                  </a>
+
+                </td>
+                </tr>
+
+                <?php endforeach; ?>
+            </tbody>
+        </table>
 
 
+     
+        <?php if (!isset($_GET["search"])) : ?>
+          <nav aria-label="Page navigation example">
+        <ul class="pagination">
+          <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
+            <li class="page-item <?php if ($i == $currentPage) echo "active"; ?>">
+              <a class="page-link" href="product_order.php?page=<?= $i ?>"><?= $i ?></a>
+            </li>
+          <?php endfor; ?>
+        </ul>
+      </nav>
+        <?php endif; ?>
+      <?php else : ?>
+        沒有訂單資料
+      <?php endif; ?>
+
+
+      <?php include("../baseball-PJ/js.php") ?>
 
 
       <!-- code結束 -->
